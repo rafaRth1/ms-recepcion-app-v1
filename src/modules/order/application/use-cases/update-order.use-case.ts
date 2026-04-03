@@ -1,0 +1,24 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { OrderEntity } from '../../domain/entities/order.entity';
+import {
+   type OrderRepository,
+   ORDER_REPOSITORY,
+} from '../../domain/repositories/order.repository';
+import { UpdateOrderDto } from '../../api/dto/update-order.dto';
+
+@Injectable()
+export class UpdateOrderUseCase {
+   constructor(
+      @Inject(ORDER_REPOSITORY)
+      private readonly orderRepository: OrderRepository,
+   ) {}
+
+   async execute(id: string, dto: UpdateOrderDto): Promise<OrderEntity> {
+      const order = await this.orderRepository.findById(id);
+      if (!order) {
+         throw new NotFoundException(`Order with id ${id} not found`);
+      }
+      const updated = await this.orderRepository.update(id, dto);
+      return updated!;
+   }
+}
