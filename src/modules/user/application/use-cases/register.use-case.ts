@@ -6,6 +6,7 @@ import {
    USER_REPOSITORY,
 } from '../../domain/repositories/user.repository';
 import { UserEntity } from '../../domain/entities/user.entity';
+import { UserRole } from 'src/shared/enums/user-role.enum';
 
 @Injectable()
 export class RegisterUseCase {
@@ -27,6 +28,7 @@ export class RegisterUseCase {
          ...data,
          password: hashed,
          token: uuidv4(),
+         role: UserRole.CASHIER,
       });
    }
 }
