@@ -21,6 +21,7 @@ export class ProfileUseCase {
       return {
          _id: user._id,
          email: user.email,
+         role: user.role,
          nickName: user.nickName,
          createdAt: user.createdAt,
          updatedAt: user.updatedAt,
