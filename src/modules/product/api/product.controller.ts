@@ -15,13 +15,17 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from '../domain/entities/product.entity';
 import { ProductFilters } from '../domain/repositories/product.repository';
 import { JwtGuard } from 'src/shared/guards/jwt.guard';
+import { GetProductsPaginatedDto } from './dto/get-products-paginated.dto';
+import { PaginatedResult } from 'src/shared/interfaces/paginated-result.interface';
 
 @Controller('products')
 @UseGuards(JwtGuard)
 export class ProductController {
    constructor(private readonly productService: ProductService) {}
 
-   /** @description Obtener todos los productos con filtros opcionales */
+   /**
+    * @description Obtener todos los productos con filtros opcionales
+    * */
    @Get()
    findAll(
       @Query('categorySlug') categorySlug?: string,
@@ -32,19 +36,35 @@ export class ProductController {
       return this.productService.findAll(filters);
    }
 
-   /** @description Obtener un producto por ID */
+   /**
+    * @description Obtener productos paginados con búsqueda y filtros
+    * */
+   @Get('paginated')
+   findPaginated(
+      @Query() dto: GetProductsPaginatedDto,
+   ): Promise<PaginatedResult<ProductEntity[]>> {
+      return this.productService.findPaginated(dto);
+   }
+
+   /**
+    * @description Obtener un producto por ID
+    * */
    @Get(':id')
    findById(@Param('id') id: string): Promise<ProductEntity> {
       return this.productService.findById(id);
    }
 
-   /** @description Crear un nuevo producto */
+   /**
+    * @description Crear un nuevo producto
+    * */
    @Post()
    create(@Body() dto: CreateProductDto): Promise<ProductEntity> {
       return this.productService.create(dto);
    }
 
-   /** @description Actualizar un producto por ID */
+   /**
+    * @description Actualizar un producto por ID
+    * */
    @Put(':id')
    update(
       @Param('id') id: string,
@@ -53,7 +73,9 @@ export class ProductController {
       return this.productService.update(id, dto);
    }
 
-   /** @description Eliminar un producto por ID */
+   /**
+    * @description Eliminar un producto por ID
+    * */
    @Delete(':id')
    async delete(@Param('id') id: string): Promise<void> {
       await this.productService.delete(id);

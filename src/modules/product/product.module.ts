@@ -11,9 +11,14 @@ import { DeleteProductUseCase } from './application/use-cases/delete-product.use
 import { ProductService } from './application/product.service';
 import { ProductController } from './api/product.controller';
 import { CategoryModule } from '../category/category.module';
+import { GetProductsPaginatedUseCase } from './application/use-cases/get-products-paginated.use-case';
+import { CategoryEntity } from '../category/domain/entities/category.entity';
 
 @Module({
-   imports: [TypeOrmModule.forFeature([ProductEntity]), CategoryModule],
+   imports: [
+      TypeOrmModule.forFeature([ProductEntity, CategoryEntity]),
+      CategoryModule,
+   ],
    controllers: [ProductController],
    providers: [
       {
@@ -23,6 +28,7 @@ import { CategoryModule } from '../category/category.module';
       CreateProductUseCase,
       GetProductsUseCase,
       GetProductByIdUseCase,
+      GetProductsPaginatedUseCase,
       UpdateProductUseCase,
       DeleteProductUseCase,
       ProductService,
