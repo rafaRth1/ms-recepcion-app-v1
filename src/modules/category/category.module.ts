@@ -10,6 +10,7 @@ import { UpdateCategoryUseCase } from './application/use-cases/update-category.u
 import { DeleteCategoryUseCase } from './application/use-cases/delete-category.use-case';
 import { CategoryService } from './application/category.service';
 import { CategoryController } from './api/category.controller';
+import { GetCategoriesPaginatedUseCase } from './application/use-cases/get-categories-paginated.use-case';
 
 @Module({
    imports: [TypeOrmModule.forFeature([CategoryEntity])],
@@ -22,6 +23,7 @@ import { CategoryController } from './api/category.controller';
       CreateCategoryUseCase,
       GetCategoriesUseCase,
       GetCategoryByIdUseCase,
+      GetCategoriesPaginatedUseCase,
       UpdateCategoryUseCase,
       DeleteCategoryUseCase,
       CategoryService,

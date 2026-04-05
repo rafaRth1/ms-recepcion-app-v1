@@ -7,6 +7,9 @@ import { DeleteCategoryUseCase } from './use-cases/delete-category.use-case';
 import { CreateCategoryDto } from '../api/dto/create-category.dto';
 import { UpdateCategoryDto } from '../api/dto/update-category.dto';
 import { CategoryEntity } from '../domain/entities/category.entity';
+import { GetCategoriesPaginatedDto } from '../api/dto/get-categories-paginated.dto';
+import { PaginatedResult } from 'src/shared/interfaces/paginated-result.interface';
+import { GetCategoriesPaginatedUseCase } from './use-cases/get-categories-paginated.use-case';
 
 @Injectable()
 export class CategoryService {
@@ -14,6 +17,7 @@ export class CategoryService {
       private readonly createCategoryUseCase: CreateCategoryUseCase,
       private readonly getCategoriesUseCase: GetCategoriesUseCase,
       private readonly getCategoryByIdUseCase: GetCategoryByIdUseCase,
+      private readonly getCategoriesPaginatedUseCase: GetCategoriesPaginatedUseCase,
       private readonly updateCategoryUseCase: UpdateCategoryUseCase,
       private readonly deleteCategoryUseCase: DeleteCategoryUseCase,
    ) {}
@@ -28,6 +32,12 @@ export class CategoryService {
 
    findById(id: string): Promise<CategoryEntity> {
       return this.getCategoryByIdUseCase.execute(id);
+   }
+
+   findPaginated(
+      dto: GetCategoriesPaginatedDto,
+   ): Promise<PaginatedResult<CategoryEntity[]>> {
+      return this.getCategoriesPaginatedUseCase.execute(dto);
    }
 
    update(id: string, dto: UpdateCategoryDto): Promise<CategoryEntity> {

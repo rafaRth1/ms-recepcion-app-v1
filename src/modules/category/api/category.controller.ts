@@ -6,6 +6,7 @@ import {
    Param,
    Post,
    Put,
+   Query,
    UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from '../application/category.service';
@@ -13,6 +14,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from '../domain/entities/category.entity';
 import { JwtGuard } from 'src/shared/guards/jwt.guard';
+import { GetCategoriesPaginatedDto } from './dto/get-categories-paginated.dto';
+import { PaginatedResult } from 'src/shared/interfaces/paginated-result.interface';
 
 @Controller('categories')
 @UseGuards(JwtGuard)
@@ -25,6 +28,16 @@ export class CategoryController {
    @Get()
    findAll(): Promise<CategoryEntity[]> {
       return this.categoryService.findAll();
+   }
+
+   /**
+    * @description Obtener categorías paginadas con búsqueda y filtros
+    */
+   @Get('paginated')
+   findPaginated(
+      @Query() dto: GetCategoriesPaginatedDto,
+   ): Promise<PaginatedResult<CategoryEntity[]>> {
+      return this.categoryService.findPaginated(dto);
    }
 
    /**
