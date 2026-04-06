@@ -1,16 +1,31 @@
 services:
-  mongodb:
-    image: mongo:7
-    container_name: recepcion-app-db
-    restart: always
-    ports:
-      - '27017:27017'
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
-    volumes:
-      - mongo_data:/data/db
+   mongodb:
+      image: mongo:7
+      container_name: recepcion-app-db
+      restart: always
+      ports:
+         - '27017:27017'
+      environment:
+         MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+         MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+         MONGO_INITDB_DATABASE: ${MONGO_DB}
+      volumes:
+         - mongo_data:/data/db
+
+   backend:
+      build:
+         context: .
+         dockerfile: deploy/Dockerfile
+      container_name: recepcion-backend
+      restart: always
+      ports:
+         - '8081:8081'
+      env_file:
+         - .env.production
+      environment:
+         DATABASE_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@recepcion-app-db:27017/${MONGO_DB}?authSource=admin
+      depends_on:
+         - mongodb
 
 volumes:
-  mongo_data:
+   mongo_data:

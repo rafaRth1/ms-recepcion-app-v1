@@ -10,9 +10,10 @@ async function bootstrap() {
    app.setGlobalPrefix('api/v1');
 
    app.enableCors({
-      origin: process.env.CORS_ORIGIN ?? '*',
+      origin: (process.env.CORS_ORIGIN ?? '*').split(','),
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
    });
 
    app.useGlobalPipes(
