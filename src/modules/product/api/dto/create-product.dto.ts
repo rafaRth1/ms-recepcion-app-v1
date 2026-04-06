@@ -7,7 +7,9 @@ import {
    Min,
    Max,
    ArrayNotEmpty,
+   IsEnum,
 } from 'class-validator';
+import { ProductType } from 'src/shared/enums/product-type.enum';
 
 export class CreateProductDto {
    @IsString()
@@ -27,6 +29,9 @@ export class CreateProductDto {
    @IsString()
    @IsOptional()
    image?: string;
+
+   @IsEnum(ProductType)
+   type: ProductType;
 
    @IsString()
    @IsOptional()

@@ -9,6 +9,7 @@ import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.use
 import { UpdateOrderUseCase } from './application/use-cases/update-order.use-case';
 import { OrderService } from './application/order.service';
 import { OrderController } from './api/order.controller';
+import { CompleteOrderUseCase } from './application/use-cases/complete-order.use-case';
 
 @Module({
    imports: [TypeOrmModule.forFeature([OrderEntity])],
@@ -22,6 +23,7 @@ import { OrderController } from './api/order.controller';
       GetOrdersUseCase,
       GetOrderByIdUseCase,
       UpdateOrderUseCase,
+      CompleteOrderUseCase,
       OrderService,
    ],
    exports: [OrderService],

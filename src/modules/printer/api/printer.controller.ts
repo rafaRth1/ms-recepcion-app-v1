@@ -33,17 +33,7 @@ export class PrinterController {
    async printReceipt(
       @Body() dto: PrintReceiptDto,
    ): Promise<{ message: string }> {
-      const receipt: CustomerReceipt = {
-         date: dto.date,
-         customerName: dto.customerName,
-         table: dto.table,
-         employee: dto.employee,
-         type: dto.type,
-         items: dto.items,
-         creams: dto.creams,
-         total: dto.total,
-      };
-      await this.printerService.printCustomerReceipt(receipt);
+      await this.printerService.printCustomerReceipt(dto.orderId);
       return { message: 'Boleta enviada a la impresora correctamente' };
    }
 }

@@ -3,14 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import net from 'net';
 import { CustomerReceipt } from '../../../shared/interfaces/customer-receipt.interface';
 import { OrderEntity } from 'src/modules/order/domain/entities/order.entity';
-import { OrderItemType } from 'src/shared/enums/order-item-type.enum';
+import { ProductType } from 'src/shared/enums/product-type.enum';
+import { OrderService } from 'src/modules/order/application/order.service';
+import { UserService } from 'src/modules/user/application/user.service';
 
 @Injectable()
 export class PrinterService {
    private readonly printerIp: string;
    private readonly printerPort: number;
 
-   constructor(private readonly configService: ConfigService) {
+   constructor(
+      private readonly configService: ConfigService,
+      private readonly orderService: OrderService,
+      private readonly userService: UserService,
+   ) {
       this.printerIp =
          this.configService.get<string>('PRINTER_IP') ?? '192.168.1.43';
       this.printerPort = this.configService.get<number>('PRINTER_PORT') ?? 9100;
@@ -21,7 +27,28 @@ export class PrinterService {
       await this.sendToPrinter(data);
    }
 
-   async printCustomerReceipt(receipt: CustomerReceipt): Promise<void> {
+   async printCustomerReceipt(orderId: string): Promise<void> {
+      const order = await this.orderService.findById(orderId);
+      const user = await this.userService.findById(order.userId);
+
+      const receipt: CustomerReceipt = {
+         date:
+            order.momentaryTime ??
+            new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
+         customerName: order.nameOrder,
+         table: order.nameOrder,
+         employee: user.nickName,
+         type: order.type,
+         items: order.items.map((item) => ({
+            description: item.name,
+            quantity: 1,
+            price: item.price,
+            total: item.price,
+         })),
+         creams: order.items.flatMap((item) => item.creams ?? []),
+         total: order.totalPrice,
+      };
+
       const data = this.buildReceiptData(receipt);
       await this.sendToPrinter(data);
    }
@@ -84,8 +111,8 @@ export class PrinterService {
          data += `${order.exception}\n`;
       }
 
-      const dishes = order.items.filter((i) => i.type === OrderItemType.DISH);
-      const drinks = order.items.filter((i) => i.type === OrderItemType.DRINK);
+      const dishes = order.items.filter((i) => i.type === ProductType.DISH);
+      const drinks = order.items.filter((i) => i.type === ProductType.DRINK);
 
       data += ESC + '!' + '\x10';
       data += 'PLATOS:\n';

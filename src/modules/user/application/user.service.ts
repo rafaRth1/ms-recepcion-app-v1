@@ -7,6 +7,7 @@ import { CheckTokenUseCase } from './use-cases/check-token.use-case';
 import { NewPasswordUseCase } from './use-cases/new-password.use-case';
 import { ProfileUseCase } from './use-cases/profile.use-case';
 import { UserEntity } from '../domain/entities/user.entity';
+import { FindByIdUseCase } from './use-cases/find-by-id.use-case';
 
 @Injectable()
 export class UserService {
@@ -18,10 +19,15 @@ export class UserService {
       private readonly checkTokenUseCase: CheckTokenUseCase,
       private readonly newPasswordUseCase: NewPasswordUseCase,
       private readonly profileUseCase: ProfileUseCase,
+      private readonly findByIdUseCase: FindByIdUseCase,
    ) {}
 
    register(data: Pick<UserEntity, 'email' | 'nickName' | 'password'>) {
       return this.registerUseCase.execute(data);
+   }
+
+   findById(id: string) {
+      return this.findByIdUseCase.execute(id);
    }
 
    authenticate(email: string, password: string) {

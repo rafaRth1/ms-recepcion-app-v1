@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ProductEntity } from '../../domain/entities/product.entity';
 import {
-   type ICategoryRepository,
+   type IProductRepository,
    PRODUCT_REPOSITORY,
    ProductFilters,
 } from '../../domain/repositories/product.repository';
@@ -10,7 +10,7 @@ import {
 export class GetProductsUseCase {
    constructor(
       @Inject(PRODUCT_REPOSITORY)
-      private readonly productRepository: ICategoryRepository,
+      private readonly productRepository: IProductRepository,
    ) {}
 
    execute(filters?: ProductFilters): Promise<ProductEntity[]> {

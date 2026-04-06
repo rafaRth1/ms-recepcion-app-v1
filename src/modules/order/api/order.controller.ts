@@ -3,6 +3,7 @@ import {
    Controller,
    Get,
    Param,
+   Patch,
    Post,
    Put,
    UseGuards,
@@ -55,5 +56,13 @@ export class OrderController {
       @Body() dto: UpdateOrderDto,
    ): Promise<OrderEntity> {
       return this.orderService.update(id, dto);
+   }
+
+   /**
+    * @description Completa una orden por su id
+    * */
+   @Patch(':id/complete')
+   async complete(@Param('id') id: string): Promise<OrderEntity> {
+      return this.orderService.complete(id);
    }
 }

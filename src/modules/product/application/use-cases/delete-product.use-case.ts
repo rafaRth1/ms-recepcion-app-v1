@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
-   type ICategoryRepository,
+   type IProductRepository,
    PRODUCT_REPOSITORY,
 } from '../../domain/repositories/product.repository';
 
@@ -8,7 +8,7 @@ import {
 export class DeleteProductUseCase {
    constructor(
       @Inject(PRODUCT_REPOSITORY)
-      private readonly productRepository: ICategoryRepository,
+      private readonly productRepository: IProductRepository,
    ) {}
 
    async execute(id: string): Promise<void> {

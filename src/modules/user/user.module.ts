@@ -15,6 +15,7 @@ import { ProfileUseCase } from './application/use-cases/profile.use-case';
 import { UserService } from './application/user.service';
 import { UserController } from './api/user.controller';
 import { JwtStrategy } from '../../shared/strategies/jwt.strategy';
+import { FindByIdUseCase } from './application/use-cases/find-by-id.use-case';
 
 @Module({
    imports: [
@@ -42,10 +43,11 @@ import { JwtStrategy } from '../../shared/strategies/jwt.strategy';
       CheckTokenUseCase,
       NewPasswordUseCase,
       ProfileUseCase,
+      FindByIdUseCase,
       UserService,
       JwtStrategy,
    ],
    controllers: [UserController],
-   exports: [USER_REPOSITORY, JwtModule],
+   exports: [USER_REPOSITORY, JwtModule, UserService],
 })
 export class UserModule {}

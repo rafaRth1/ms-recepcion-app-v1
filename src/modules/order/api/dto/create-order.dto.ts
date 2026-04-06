@@ -7,13 +7,13 @@ import {
    IsString,
    ValidateNested,
 } from 'class-validator';
-import { OrderItemType } from 'src/shared/enums/order-item-type.enum';
 import { OrderType } from 'src/shared/enums/order-type.enum';
 import { PaymentType } from 'src/shared/enums/payment-type.enum';
+import { ProductType } from 'src/shared/enums/product-type.enum';
 
 export class OrderItemDto {
-   @IsEnum(OrderItemType)
-   type: OrderItemType;
+   @IsEnum(ProductType)
+   type: ProductType;
 
    @IsString()
    name: string;

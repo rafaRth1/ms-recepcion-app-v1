@@ -3,11 +3,11 @@ import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { ProductEntity } from '../domain/entities/product.entity';
 import {
-   ICategoryRepository,
+   IProductRepository,
    ProductFilters,
 } from '../domain/repositories/product.repository';
 
-export class ProductRepositoryImpl implements ICategoryRepository {
+export class ProductRepositoryImpl implements IProductRepository {
    constructor(
       @InjectRepository(ProductEntity)
       private readonly repo: MongoRepository<ProductEntity>,

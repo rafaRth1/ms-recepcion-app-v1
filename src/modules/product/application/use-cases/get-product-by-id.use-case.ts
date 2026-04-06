@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ProductEntity } from '../../domain/entities/product.entity';
 import {
-   type ICategoryRepository,
+   type IProductRepository,
    PRODUCT_REPOSITORY,
 } from '../../domain/repositories/product.repository';
 
@@ -9,7 +9,7 @@ import {
 export class GetProductByIdUseCase {
    constructor(
       @Inject(PRODUCT_REPOSITORY)
-      private readonly productRepository: ICategoryRepository,
+      private readonly productRepository: IProductRepository,
    ) {}
 
    async execute(id: string): Promise<ProductEntity> {

@@ -6,6 +6,7 @@ import { UpdateOrderUseCase } from './use-cases/update-order.use-case';
 import { CreateOrderDto } from '../api/dto/create-order.dto';
 import { UpdateOrderDto } from '../api/dto/update-order.dto';
 import { OrderEntity } from '../domain/entities/order.entity';
+import { CompleteOrderUseCase } from './use-cases/complete-order.use-case';
 
 @Injectable()
 export class OrderService {
@@ -14,6 +15,7 @@ export class OrderService {
       private readonly getOrdersUseCase: GetOrdersUseCase,
       private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
       private readonly updateOrderUseCase: UpdateOrderUseCase,
+      private readonly completeOrderUseCase: CompleteOrderUseCase,
    ) {}
 
    async create(dto: CreateOrderDto, userId: string): Promise<OrderEntity> {
@@ -30,5 +32,9 @@ export class OrderService {
 
    async update(id: string, dto: UpdateOrderDto): Promise<OrderEntity> {
       return this.updateOrderUseCase.execute(id, dto);
+   }
+
+   async complete(id: string): Promise<OrderEntity> {
+      return this.completeOrderUseCase.execute(id);
    }
 }

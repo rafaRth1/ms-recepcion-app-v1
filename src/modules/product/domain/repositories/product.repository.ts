@@ -6,7 +6,7 @@ export interface ProductFilters {
    search?: string;
 }
 
-export interface ICategoryRepository {
+export interface IProductRepository {
    findAll(filters?: ProductFilters): Promise<ProductEntity[]>;
    findById(id: string): Promise<ProductEntity | null>;
    save(product: ProductEntity): Promise<ProductEntity>;

@@ -1,9 +1,9 @@
-import { OrderItemType } from 'src/shared/enums/order-item-type.enum';
+import { ProductType } from 'src/shared/enums/product-type.enum';
 import { Column } from 'typeorm';
 
 export class OrderItem {
    @Column()
-   type: OrderItemType;
+   type: ProductType;
 
    @Column()
    name: string;

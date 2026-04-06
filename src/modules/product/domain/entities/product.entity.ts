@@ -7,6 +7,8 @@ import {
    ObjectIdColumn,
    UpdateDateColumn,
 } from 'typeorm';
+import { CategoryEmbed } from './category-embed';
+import { ProductType } from 'src/shared/enums/product-type.enum';
 
 @Entity('products')
 export class ProductEntity {
@@ -34,8 +36,11 @@ export class ProductEntity {
    @Column('array', { default: [] })
    tags: string[];
 
+   @Column({ type: 'enum', enum: ProductType })
+   type: ProductType;
+
    @Column('array', { default: [] })
-   categoryIds: string[];
+   categories: CategoryEmbed[];
 
    @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
    status: Status;

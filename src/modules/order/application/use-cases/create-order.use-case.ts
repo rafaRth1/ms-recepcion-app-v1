@@ -22,9 +22,9 @@ export class CreateOrderUseCase {
       order.nameOrder = dto.nameOrder;
       order.items = dto.items.map((item: OrderItemDto) => {
          const orderItem = new OrderItem();
-         orderItem.type = item.type;
          orderItem.name = item.name;
          orderItem.price = item.price;
+         orderItem.type = item.type;
          orderItem.extras = item.extras ?? [];
          orderItem.creams = item.creams ?? [];
          return orderItem;
