@@ -10,6 +10,7 @@ import { UpdateOrderUseCase } from './application/use-cases/update-order.use-cas
 import { OrderService } from './application/order.service';
 import { OrderController } from './api/order.controller';
 import { CompleteOrderUseCase } from './application/use-cases/complete-order.use-case';
+import { GetOrdersPaginatedUseCase } from './application/use-cases/get-orders-paginated.use-case';
 
 @Module({
    imports: [TypeOrmModule.forFeature([OrderEntity])],
@@ -24,6 +25,7 @@ import { CompleteOrderUseCase } from './application/use-cases/complete-order.use
       GetOrderByIdUseCase,
       UpdateOrderUseCase,
       CompleteOrderUseCase,
+      GetOrdersPaginatedUseCase,
       OrderService,
    ],
    exports: [OrderService],

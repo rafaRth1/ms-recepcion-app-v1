@@ -7,6 +7,9 @@ import { CreateOrderDto } from '../api/dto/create-order.dto';
 import { UpdateOrderDto } from '../api/dto/update-order.dto';
 import { OrderEntity } from '../domain/entities/order.entity';
 import { CompleteOrderUseCase } from './use-cases/complete-order.use-case';
+import { GetOrdersPaginatedUseCase } from './use-cases/get-orders-paginated.use-case';
+import { GetOrdersPaginatedDto } from '../api/dto/get-orders-paginated.dto';
+import { PaginatedResult } from 'src/shared/interfaces/paginated-result.interface';
 
 @Injectable()
 export class OrderService {
@@ -16,6 +19,7 @@ export class OrderService {
       private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
       private readonly updateOrderUseCase: UpdateOrderUseCase,
       private readonly completeOrderUseCase: CompleteOrderUseCase,
+      private readonly getOrdersPaginatedUseCase: GetOrdersPaginatedUseCase,
    ) {}
 
    async create(dto: CreateOrderDto, userId: string): Promise<OrderEntity> {
@@ -36,5 +40,11 @@ export class OrderService {
 
    async complete(id: string): Promise<OrderEntity> {
       return this.completeOrderUseCase.execute(id);
+   }
+
+   async findPaginated(
+      dto: GetOrdersPaginatedDto,
+   ): Promise<PaginatedResult<OrderEntity[]>> {
+      return this.getOrdersPaginatedUseCase.execute(dto);
    }
 }

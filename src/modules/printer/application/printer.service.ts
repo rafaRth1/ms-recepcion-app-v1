@@ -35,7 +35,9 @@ export class PrinterService {
          date:
             order.momentaryTime && order.momentaryTime.trim() !== ''
                ? order.momentaryTime
-               : new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
+               : new Date().toLocaleString('es-PE', {
+                    timeZone: 'America/Lima',
+                 }),
          customerName: order.nameOrder,
          table: order.nameOrder,
          employee: user.nickName,
@@ -336,10 +338,7 @@ export class PrinterService {
       }
 
       return (
-         words.trim() +
-         ' Y ' +
-         String(decPart).padStart(2, '0') +
-         '/100 SOLES'
+         words.trim() + ' Y ' + String(decPart).padStart(2, '0') + '/100 SOLES'
       );
    }
 
