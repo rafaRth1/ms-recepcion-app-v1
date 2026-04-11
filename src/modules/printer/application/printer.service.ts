@@ -33,8 +33,9 @@ export class PrinterService {
 
       const receipt: CustomerReceipt = {
          date:
-            order.momentaryTime ??
-            new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
+            order.momentaryTime && order.momentaryTime.trim() !== ''
+               ? order.momentaryTime
+               : new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
          customerName: order.nameOrder,
          table: order.nameOrder,
          employee: user.nickName,
@@ -56,7 +57,7 @@ export class PrinterService {
    private sendToPrinter(data: string): Promise<void> {
       return new Promise((resolve, reject) => {
          const client = new net.Socket();
-         client.setTimeout(5000);
+         client.setTimeout(10000);
 
          client.connect(this.printerPort, this.printerIp, () => {
             client.write(Buffer.from(data, 'binary'));
@@ -67,7 +68,7 @@ export class PrinterService {
          client.on('error', (err) => {
             reject(
                new InternalServerErrorException(
-                  'Error conectando a la impresora: ' + err.message,
+                  `Error conectando a la impresora (${this.printerIp}:${this.printerPort}): ${err.message}`,
                ),
             );
          });
@@ -76,7 +77,7 @@ export class PrinterService {
             client.destroy();
             reject(
                new InternalServerErrorException(
-                  'Timeout al conectar a la impresora',
+                  `Timeout al conectar a la impresora (${this.printerIp}:${this.printerPort})`,
                ),
             );
          });
@@ -114,6 +115,7 @@ export class PrinterService {
       const dishes = order.items.filter((i) => i.type === ProductType.DISH);
       const drinks = order.items.filter((i) => i.type === ProductType.DRINK);
 
+      data += '\n';
       data += ESC + '!' + '\x10';
       data += 'PLATOS:\n';
       data += ESC + '!' + '\x00';
@@ -175,33 +177,41 @@ export class PrinterService {
       data += 'EZECHIS BURGER\n';
       data += ESC + '!' + '\x00';
       data += '\n';
-
-      data += ESC + 'a' + '\x00';
       data += 'RUC: 10482622670\n';
       data += 'Tel: 924 373 692\n';
-      data += 'Sol de Villa Lt 34, Carabayllo 15318\n';
+      data += 'Sol de Villa Lt 34, Carabayllo\n';
       data += '\n';
-      data += `Fecha: ${receipt.date}\n`;
 
+      data += '------------------------------------------\n';
+      data += '  BOLETA\n';
+      data += '------------------------------------------\n';
+      data += '\n';
+      data += ESC + 'a' + '\x00';
+      data += `Fecha: ${receipt.date}\n`;
       if (receipt.customerName) {
          data += `Cliente: ${receipt.customerName}\n`;
       }
-
       data += `Mesa: ${receipt.table}\n`;
       data += `Empleado: ${receipt.employee}\n`;
-      data += '----------------------------------------------\n';
+      data += '\n';
 
-      data += this.pad('#', 3) + this.pad('ITEM', 28) + 'IMPORTE\n';
-      data += '----------------------------------------------\n';
+      const sep = '------------------------------------------------';
+      data += sep + '\n';
+      const header =
+         this.pad('CANT', 6) +
+         this.pad('DESCRIPCION', 32) +
+         this.pad('IMPORTE', 10);
+      data += header + '\n';
+      data += sep + '\n';
 
-      receipt.items.forEach((item, index) => {
-         data += this.pad((index + 1).toString(), 3);
-         data += this.pad(item.description.slice(0, 28), 28);
-         data += `${item.total.toFixed(2)}\n`;
-
-         if (item.quantity > 1) {
-            data += this.pad('', 3);
-            data += `  ${item.quantity} x S/${item.price.toFixed(2)}\n`;
+      receipt.items.forEach((item) => {
+         const nameLines = this.wrapText(item.description, 32);
+         data += this.pad(String(item.quantity), 6);
+         data += this.pad(nameLines[0], 32);
+         data += this.pad(`S/${item.total.toFixed(2)}`, 10) + '\n';
+         for (let i = 1; i < nameLines.length; i++) {
+            data += this.pad('', 6);
+            data += nameLines[i] + '\n';
          }
       });
 
@@ -210,29 +220,117 @@ export class PrinterService {
          receipt.creams.length > 0 &&
          (receipt.type === 'DELIVERY' || receipt.type === 'PICKUP')
       ) {
-         data += '----------------------------------------------\n';
-         data += ESC + '!' + '\x10';
-         data += 'CREMAS:\n';
-         data += ESC + '!' + '\x00';
-         data += `${receipt.creams.join(', ')}\n`;
+         data += sep + '\n';
+         data += `Cremas: ${receipt.creams.join(', ')}\n`;
       }
 
-      data += '----------------------------------------------\n';
-      data += `CANTIDAD DE ITEMS: ${receipt.items.reduce((sum, item) => sum + item.quantity, 0)}\n`;
+      data += sep + '\n';
       data += '\n';
+      data += ESC + 'a' + '\x01';
       data += ESC + '!' + '\x10';
       data += `TOTAL: S/${receipt.total.toFixed(2)}\n`;
       data += ESC + '!' + '\x00';
-      data += '----------------------------------------------\n';
       data += '\n';
-      data += ESC + 'a' + '\x01';
-      data += 'GRACIAS POR SU VISITA!\n';
+      data += `SON: ${this.numberToWords(receipt.total)}\n`;
       data += '\n';
-      data += ESC + 'a' + '\x00';
-      data += '\n\n\n\n\n\n';
+      data += '* GRACIAS POR SU VISITA! *\n';
+      data += '    Vuelva pronto...\n';
+      data += '\n\n\n\n\n';
       data += GS + 'V' + '\x00';
 
       return data;
+   }
+
+   private numberToWords(n: number): string {
+      const units = [
+         '',
+         'UNO',
+         'DOS',
+         'TRES',
+         'CUATRO',
+         'CINCO',
+         'SEIS',
+         'SIETE',
+         'OCHO',
+         'NUEVE',
+      ];
+      const teens = [
+         'DIEZ',
+         'ONCE',
+         'DOCE',
+         'TRECE',
+         'CATORCE',
+         'QUINCE',
+         'DIECISEIS',
+         'DIECISIETE',
+         'DIECIOCHO',
+         'DIECINUEVE',
+      ];
+      const tens = [
+         '',
+         'DIEZ',
+         'VEINTE',
+         'TREINTA',
+         'CUARENTA',
+         'CINCUENTA',
+         'SESENTA',
+         'SETENTA',
+         'OCHENTA',
+         'NOVENTA',
+      ];
+      const hundreds = [
+         '',
+         'CIENTO',
+         'DOSCIENTOS',
+         'TRESCIENTOS',
+         'CUATROCIENTOS',
+         'QUINIENTOS',
+         'SEISCIENTOS',
+         'SETECIENTOS',
+         'OCHOCIENTOS',
+         'NOVECIENTOS',
+      ];
+
+      if (n === 0) return 'CERO Y 00/100 SOLES';
+
+      const intPart = Math.floor(n);
+      const decPart = Math.round((n - intPart) * 100);
+
+      const toHundreds = (num: number): string => {
+         if (num === 0) return '';
+         if (num === 100) return 'CIEN';
+         let result = '';
+         const h = Math.floor(num / 100);
+         const rest = num % 100;
+         if (h > 0) result += hundreds[h] + ' ';
+         if (rest >= 10 && rest <= 19) result += teens[rest - 10];
+         else if (rest >= 20 && rest <= 29 && rest !== 20)
+            result += 'VEINTI' + units[rest - 20].toLowerCase();
+         else if (rest > 0) {
+            const t = Math.floor(rest / 10);
+            const u = rest % 10;
+            result += tens[t];
+            if (u > 0) result += ' Y ' + units[u];
+         }
+         return result.trim();
+      };
+
+      let words = '';
+      if (intPart >= 1000) {
+         const thousands = Math.floor(intPart / 1000);
+         words += thousands === 1 ? 'MIL ' : toHundreds(thousands) + ' MIL ';
+         const remainder = intPart % 1000;
+         if (remainder > 0) words += toHundreds(remainder) + ' ';
+      } else {
+         words += toHundreds(intPart) + ' ';
+      }
+
+      return (
+         words.trim() +
+         ' Y ' +
+         String(decPart).padStart(2, '0') +
+         '/100 SOLES'
+      );
    }
 
    private getTipoPedido(type: string): string {

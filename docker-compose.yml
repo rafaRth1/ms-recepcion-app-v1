@@ -24,8 +24,12 @@ services:
          - .env.production
       environment:
          DATABASE_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@recepcion-app-db:27017/${MONGO_DB}?authSource=admin
+         PRINTER_IP: ${PRINTER_IP:-192.168.1.43}
+         PRINTER_PORT: ${PRINTER_PORT:-9100}
       depends_on:
          - mongodb
+      extra_hosts:
+         - 'host.docker.internal:host-gateway'
 
 volumes:
    mongo_data:
