@@ -92,17 +92,21 @@ export class PrinterService {
       data += ESC + '@';
 
       const tipoPedido = this.getTipoPedido(order.type);
-      data += ESC + '!' + '\x10';
+      data += ESC + 'a' + '\x01';
+      data += ESC + '!' + '\x18';
       data += `*** ${tipoPedido} ***\n`;
       data += ESC + '!' + '\x00';
-
-      data += '==========================================\n';
-
       data += ESC + 'a' + '\x00';
-      data += `Cliente: ${order.nameOrder}\n`;
-      data += `Fecha: ${order.momentaryTime ?? '----'}\n`;
+
+      data += '------------------------------------------------\n';
+      const fecha =
+         order.momentaryTime && order.momentaryTime.trim() !== ''
+            ? order.momentaryTime
+            : new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
+      data += `Fecha: ${fecha}\n`;
+      data += `Cliente: ${order.nameOrder ?? '----'}\n`;
       data += `Pago: ${order.paymentType ?? '----'}\n`;
-      data += '==========================================\n';
+      data += '------------------------------------------------\n';
 
       if (order.exception && order.exception.trim() !== '') {
          data += '\n';
@@ -119,22 +123,24 @@ export class PrinterService {
       data += ESC + '!' + '\x10';
       data += 'PLATOS:\n';
       data += ESC + '!' + '\x00';
-      data +=
-         this.pad('NOMBRE', 20) +
-         this.pad('ARR', 5) +
-         this.pad('ENS', 5) +
-         'PRECIO\n';
-      data += '------------------------------------------\n';
+      const dishHeader =
+         this.pad('NOMBRE', 28) +
+         this.pad('ARR', 6) +
+         this.pad('ENS', 6) +
+         this.pad('PRECIO', 8);
+      data += '------------------------------------------------\n';
+      data += dishHeader + '\n';
+      data += '------------------------------------------------\n';
 
       dishes.forEach((dish) => {
-         const nameLines = this.wrapText(dish.name, 20);
-         data += this.pad(nameLines[0], 20);
-         data += this.pad(dish.extras.includes('rice') ? 'Si' : 'No', 5);
-         data += this.pad(dish.extras.includes('salad') ? 'Si' : 'No', 5);
-         data += `S/${dish.price.toFixed(2)}\n`;
+         const nameLines = this.wrapText(dish.name, 28);
+         data += this.pad(nameLines[0], 28);
+         data += this.pad(dish.extras.includes('rice') ? 'Si' : 'No', 6);
+         data += this.pad(dish.extras.includes('salad') ? 'Si' : 'No', 6);
+         data += this.pad(`S/${dish.price.toFixed(2)}`, 8) + '\n';
 
          for (let i = 1; i < nameLines.length; i++) {
-            data += this.pad(nameLines[i], 20) + '\n';
+            data += this.pad(nameLines[i], 28) + '\n';
          }
 
          if (dish.creams.length > 0) {
@@ -147,19 +153,23 @@ export class PrinterService {
          data += ESC + '!' + '\x10';
          data += 'BEBIDAS:\n';
          data += ESC + '!' + '\x00';
-         data += '------------------------------------------\n';
+         data += '------------------------------------------------\n';
          drinks.forEach((drink) => {
-            data += this.pad(drink.name, 30);
+            const nameLines = this.wrapText(drink.name, 34);
+            data += this.pad(nameLines[0], 34);
             data += `S/${drink.price.toFixed(2)}\n`;
+            for (let i = 1; i < nameLines.length; i++) {
+               data += nameLines[i] + '\n';
+            }
          });
       }
 
-      data += '==========================================\n';
-      data += ESC + 'a' + '\x02';
+      data += '------------------------------------------------\n';
+      data += ESC + 'a' + '\x01';
       data += ESC + '!' + '\x10';
       data += `TOTAL: S/${order.totalPrice.toFixed(2)}\n`;
       data += ESC + '!' + '\x00';
-      data += '\n\n\n\n\n\n';
+      data += '\n\n\n\n\n';
       data += GS + 'V' + '\x00';
 
       return data;
