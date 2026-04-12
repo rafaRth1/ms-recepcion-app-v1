@@ -120,6 +120,8 @@ export class PrinterService {
 
       const dishes = order.items.filter((i) => i.type === ProductType.DISH);
       const drinks = order.items.filter((i) => i.type === ProductType.DRINK);
+      const allCreams = order.items.flatMap((item) => item.creams ?? []);
+      const uniqueCreams = [...new Set(allCreams)];
 
       data += '\n';
       data += ESC + '!' + '\x10';
@@ -144,10 +146,6 @@ export class PrinterService {
          for (let i = 1; i < nameLines.length; i++) {
             data += this.pad(nameLines[i], 28) + '\n';
          }
-
-         if (dish.creams.length > 0) {
-            data += `  Cremas: ${dish.creams.join(', ')}\n`;
-         }
       });
 
       if (drinks.length > 0) {
@@ -164,6 +162,34 @@ export class PrinterService {
                data += nameLines[i] + '\n';
             }
          });
+      }
+
+      if (uniqueCreams.length > 0) {
+         data += '\n';
+         data += ESC + '!' + '\x10';
+         data += 'CREMAS:\n';
+         data += ESC + '!' + '\x00';
+         data += '------------------------------------------------\n';
+         dishes.forEach((dish) => {
+            if (dish.creams.length > 0) {
+               const nameLines = this.wrapText(dish.name, 32);
+               data += nameLines[0] + '\n';
+               for (let i = 1; i < nameLines.length; i++) {
+                  data += nameLines[i] + '\n';
+               }
+               data += `  Cremas: ${dish.creams.join(', ')}\n`;
+            }
+         });
+      }
+
+      data += '------------------------------------------------\n';
+      if (order.disposableCharge > 0) {
+         const disposableCount = order.items.filter(
+            (item) => item.chargeDisposable,
+         ).length;
+         data += this.pad('Descartables', 26);
+         data += `S/${order.disposableCharge.toFixed(2)}\n`;
+         data += `  (${disposableCount} item${disposableCount > 1 ? 's' : ''} x S/1.00)\n`;
       }
 
       data += '------------------------------------------------\n';

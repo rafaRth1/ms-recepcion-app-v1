@@ -16,4 +16,7 @@ export class OrderItem {
 
    @Column('array', { default: [] })
    creams: string[];
+
+   @Column({ default: false })
+   chargeDisposable: boolean;
 }

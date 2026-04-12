@@ -30,6 +30,9 @@ export class OrderItemDto {
    @IsString({ each: true })
    @IsOptional()
    creams: string[];
+
+   @IsOptional()
+   chargeDisposable?: boolean;
 }
 
 export class CreateOrderDto {

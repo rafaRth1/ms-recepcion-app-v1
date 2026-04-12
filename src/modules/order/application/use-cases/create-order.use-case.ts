@@ -9,6 +9,7 @@ import { OrderEntity } from '../../domain/entities/order.entity';
 import { OrderItem } from '../../domain/entities/order-item.entity';
 import { CreateOrderDto, OrderItemDto } from '../../api/dto/create-order.dto';
 import { PaymentType } from 'src/shared/enums/payment-type.enum';
+import { OrderType } from 'src/shared/enums/order-type.enum';
 
 @Injectable()
 export class CreateOrderUseCase {
@@ -18,6 +19,10 @@ export class CreateOrderUseCase {
    ) {}
 
    async execute(dto: CreateOrderDto, userId: string): Promise<OrderEntity> {
+      const isDeliveryOrPickup =
+         dto.type === OrderType.DELIVERY || dto.type === OrderType.PICKUP;
+      const DISPOSABLE_PRICE = 1.0;
+
       const order = new OrderEntity();
       order.nameOrder = dto.nameOrder;
       order.items = dto.items.map((item: OrderItemDto) => {
@@ -27,9 +32,19 @@ export class CreateOrderUseCase {
          orderItem.type = item.type;
          orderItem.extras = item.extras ?? [];
          orderItem.creams = item.creams ?? [];
+         orderItem.chargeDisposable =
+            isDeliveryOrPickup && item.chargeDisposable === true;
          return orderItem;
       });
-      order.totalPrice = dto.items.reduce((acc, item) => acc + item.price, 0);
+
+      const itemsTotal = dto.items.reduce((acc, item) => acc + item.price, 0);
+      const disposableCount = order.items.filter(
+         (item) => item.chargeDisposable,
+      ).length;
+      const disposableCharge = disposableCount * DISPOSABLE_PRICE;
+
+      order.totalPrice = itemsTotal + disposableCharge;
+      order.disposableCharge = disposableCharge;
       order.exception = dto.exception ?? '';
       order.momentaryTime = dto.momentaryTime ?? '';
       order.paymentType = dto.paymentType ?? PaymentType.EFECTIVO;

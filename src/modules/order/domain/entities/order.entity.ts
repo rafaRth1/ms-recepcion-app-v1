@@ -26,6 +26,9 @@ export class OrderEntity {
    @Column({ nullable: true, default: 0 })
    totalPrice: number;
 
+   @Column({ nullable: true, default: 0 })
+   disposableCharge: number;
+
    @Column({ nullable: true, default: '' })
    exception: string;
 
