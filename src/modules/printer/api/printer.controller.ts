@@ -2,8 +2,8 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { PrinterService } from '../application/printer.service';
 import { PrintTicketDto } from './dto/print-ticket.dto';
 import { PrintReceiptDto } from './dto/print-receipt.dto';
+import { PrintDirectTicketDto } from './dto/print-direct-ticket.dto';
 import { OrderService } from '../../order/application/order.service';
-import { CustomerReceipt } from '../../../shared/interfaces/customer-receipt.interface';
 import { JwtGuard } from 'src/shared/guards/jwt.guard';
 
 @Controller('printer')
@@ -35,5 +35,16 @@ export class PrinterController {
    ): Promise<{ message: string }> {
       await this.printerService.printCustomerReceipt(dto.orderId);
       return { message: 'Boleta enviada a la impresora correctamente' };
+   }
+
+   /**
+    * @description Imprimir ticket de cocina directamente sin crear orden en BD
+    */
+   @Post('print-direct')
+   async printDirectTicket(
+      @Body() dto: PrintDirectTicketDto,
+   ): Promise<{ message: string }> {
+      await this.printerService.printDirectTicket(dto);
+      return { message: 'Ticket enviado a la impresora correctamente' };
    }
 }

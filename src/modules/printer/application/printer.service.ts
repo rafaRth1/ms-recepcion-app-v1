@@ -6,6 +6,7 @@ import { OrderEntity } from 'src/modules/order/domain/entities/order.entity';
 import { ProductType } from 'src/shared/enums/product-type.enum';
 import { OrderService } from 'src/modules/order/application/order.service';
 import { UserService } from 'src/modules/user/application/user.service';
+import { PrintDirectTicketDto } from '../api/dto/print-direct-ticket.dto';
 
 @Injectable()
 export class PrinterService {
@@ -24,6 +25,11 @@ export class PrinterService {
 
    async printTicket(order: OrderEntity): Promise<void> {
       const data = this.buildTicketData(order);
+      await this.sendToPrinter(data);
+   }
+
+   async printDirectTicket(dto: PrintDirectTicketDto): Promise<void> {
+      const data = this.buildDirectTicketData(dto);
       await this.sendToPrinter(data);
    }
 
@@ -196,6 +202,123 @@ export class PrinterService {
       data += ESC + 'a' + '\x01';
       data += ESC + '!' + '\x10';
       data += `TOTAL: S/${order.totalPrice.toFixed(2)}\n`;
+      data += ESC + '!' + '\x00';
+      data += '\n\n\n\n\n';
+      data += GS + 'V' + '\x00';
+
+      return data;
+   }
+
+   private buildDirectTicketData(dto: PrintDirectTicketDto): string {
+      const ESC = '\x1B';
+      const GS = '\x1D';
+      let data = '';
+
+      data += ESC + '@';
+
+      const tipoPedido = this.getTipoPedido(dto.type);
+      data += ESC + 'a' + '\x01';
+      data += ESC + '!' + '\x18';
+      data += `*** ${tipoPedido} ***\n`;
+      data += ESC + '!' + '\x00';
+      data += ESC + 'a' + '\x00';
+
+      data += '------------------------------------------------\n';
+      const fecha =
+         dto.momentaryTime && dto.momentaryTime.trim() !== ''
+            ? dto.momentaryTime
+            : new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
+      data += `Fecha: ${fecha}\n`;
+      data += `Cliente: ${dto.nameOrder ?? '----'}\n`;
+      data += `Pago: ${dto.paymentType ?? '----'}\n`;
+      data += '------------------------------------------------\n';
+
+      if (dto.exception && dto.exception.trim() !== '') {
+         data += '\n';
+         data += ESC + '!' + '\x10';
+         data += '*** NOTA ***\n';
+         data += ESC + '!' + '\x00';
+         data += `${dto.exception}\n`;
+      }
+
+      const dishes = dto.items.filter((i) => i.type === ProductType.DISH);
+      const drinks = dto.items.filter((i) => i.type === ProductType.DRINK);
+      const allCreams = dto.items.flatMap((item) => item.creams ?? []);
+      const uniqueCreams = [...new Set(allCreams)];
+
+      data += '\n';
+      data += ESC + '!' + '\x10';
+      data += 'PLATOS:\n';
+      data += ESC + '!' + '\x00';
+      const dishHeader =
+         this.pad('NOMBRE', 28) +
+         this.pad('ARR', 6) +
+         this.pad('ENS', 6) +
+         this.pad('PRECIO', 8);
+      data += '------------------------------------------------\n';
+      data += dishHeader + '\n';
+      data += '------------------------------------------------\n';
+
+      dishes.forEach((dish) => {
+         const nameLines = this.wrapText(dish.name, 28);
+         data += this.pad(nameLines[0], 28);
+         data += this.pad(dish.extras?.includes('rice') ? 'Si' : 'No', 6);
+         data += this.pad(dish.extras?.includes('salad') ? 'Si' : 'No', 6);
+         data += this.pad(`S/${dish.price.toFixed(2)}`, 8) + '\n';
+
+         for (let i = 1; i < nameLines.length; i++) {
+            data += this.pad(nameLines[i], 28) + '\n';
+         }
+      });
+
+      if (drinks.length > 0) {
+         data += '\n';
+         data += ESC + '!' + '\x10';
+         data += 'BEBIDAS:\n';
+         data += ESC + '!' + '\x00';
+         data += '------------------------------------------------\n';
+         drinks.forEach((drink) => {
+            const nameLines = this.wrapText(drink.name, 34);
+            data += this.pad(nameLines[0], 34);
+            data += `S/${drink.price.toFixed(2)}\n`;
+            for (let i = 1; i < nameLines.length; i++) {
+               data += nameLines[i] + '\n';
+            }
+         });
+      }
+
+      if (uniqueCreams.length > 0) {
+         data += '\n';
+         data += ESC + '!' + '\x10';
+         data += 'CREMAS:\n';
+         data += ESC + '!' + '\x00';
+         data += '------------------------------------------------\n';
+         dishes.forEach((dish) => {
+            if (dish.creams && dish.creams.length > 0) {
+               const nameLines = this.wrapText(dish.name, 32);
+               data += nameLines[0] + '\n';
+               for (let i = 1; i < nameLines.length; i++) {
+                  data += nameLines[i] + '\n';
+               }
+               data += `  Cremas: ${dish.creams.join(', ')}\n`;
+            }
+         });
+      }
+
+      data += '------------------------------------------------\n';
+      if (dto.disposableCharge && dto.disposableCharge > 0) {
+         const disposableCount = dto.items.filter(
+            (item) => item.chargeDisposable,
+         ).length;
+         data += this.pad('Descartables', 26);
+         data += `S/${dto.disposableCharge.toFixed(2)}\n`;
+         data += `  (${disposableCount} item${disposableCount > 1 ? 's' : ''} x S/1.00)\n`;
+      }
+
+      data += '------------------------------------------------\n';
+      data += ESC + 'a' + '\x01';
+      data += ESC + '!' + '\x10';
+      data += `TOTAL: S/${dto.totalPrice.toFixed(2)}\n`;
       data += ESC + '!' + '\x00';
       data += '\n\n\n\n\n';
       data += GS + 'V' + '\x00';
